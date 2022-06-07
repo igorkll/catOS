@@ -22,15 +22,15 @@ end
 function lib.maxResolution()
     local mx, my = gpu.maxResolution()
     my = my - lib.resYadd
-    return mx, my
+    return math.floor(mx), math.floor(my)
 end
 
 function lib.getCenter(posX, posY, sizeX, sizeY)
-    return math.floor((posX + (sizeX / 2)) + 0.5), math.floor((posY + (sizeY / 2)) + 0.5)
+    return math.floor((posX + (sizeX / 2)) + 0.5), math.floor((posY + (sizeY / 2) + 0.5))
 end
 
 function lib.drawText(posX, posY, sizeX, sizeY, text)
-    local x, y = lib.getCenter(posX, posY, text)
+    local x, y = lib.getCenter(posX, posY, sizeX, sizeY, text)
     gpu.set(math.floor((x - (unicode.len(text) / 2)) + 0.5), y, text)
 end
 
@@ -52,14 +52,14 @@ function lib.createScene(color, resx, resy)
 
     function scene.draw()
         scene.checkRemove()
-        gpu.setResolution(scene.resy, scene.resy)
+        gpu.setResolution(scene.resx + lib.resXadd, scene.resy + lib.resYadd)
         lib.drawUi()
         gpu.setBackground(scene.color)
         gpu.fill(1 + lib.posXadd, 1 + lib.posYadd, scene.resx, scene.resy, " ")
         for i, v in ipairs(scene.objs) do v.draw() end
     end
 
-    function lib.select()
+    function scene.select()
         scene.checkRemove()
         if lib.scene then for i, v in ipairs(lib.scene.leaveCallbacks) do v() end end
         lib.scene = scene
@@ -67,7 +67,7 @@ function lib.createScene(color, resx, resy)
         scene.draw()
     end
 
-    function lib.remove()
+    function scene.remove()
         scene.checkRemove()
         for i, v in ipairs(scene.leaveCallbacks) do v() end
         for i, v in ipairs(scene.removeCallbacks) do v() end
@@ -75,14 +75,14 @@ function lib.createScene(color, resx, resy)
         scene.removed = true
     end
 
-    function lib.uploadEvent(...)
+    function scene.uploadEvent(...)
         scene.checkRemove()
         for i, v in ipairs(scene.objs) do v.uploadEvent(...) end
     end
 
     --------------------------------------------
 
-    function lib.createButton(x, y, sizeX, sizeY, text, callback, mode)
+    function scene.createButton(x, y, sizeX, sizeY, text, callback, mode)
         local obj = {}
         obj.backColor = colors.white
         obj.foreColor = colors.gray2
@@ -166,6 +166,10 @@ function lib.createScene(color, resx, resy)
 
     table.insert(lib.scenes, scene)
     return scene
+end
+
+function lib.uploadEvent(...)
+    lib.scene.uploadEvent(...)
 end
 
 return lib

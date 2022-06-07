@@ -120,6 +120,19 @@ gpu.set(1, 11, string.rep(" ", rx))
 gpu.setBackground(colors.purple)
 gpu.set(1, 12, string.rep(" ", rx))
 
-while true do
-    computer.pullSignal()
+computer.pullSignal()
+
+do
+    local gui = require("gui")
+    
+    local scene = gui.createScene(colors.red, 50, 16)
+    local b1 = scene.createButton(1, 1, 8, 3, "asd123", function()
+        
+    end, 2)
+
+    scene.select()
+
+    while true do
+        gui.uploadEvent(computer.pullSignal())
+    end
 end
