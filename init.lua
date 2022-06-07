@@ -79,46 +79,46 @@ colors.applyPalette()
 
 --------------------------------------------
 
-local rx, ry = 12, 16
+local rx, ry = 16, 12
 gpu.setResolution(rx, ry)
 
 gpu.setBackground(colors.black)
-gpu.set(1, 1, string.rep(rx))
+gpu.set(1, 1, string.rep(" ", rx))
 
 gpu.setBackground(colors.gray1)
-gpu.set(1, 2, string.rep(rx))
+gpu.set(1, 2, string.rep(" ", rx))
 
 gpu.setBackground(colors.gray2)
-gpu.set(1, 3, string.rep(rx))
+gpu.set(1, 3, string.rep(" ", rx))
 
 gpu.setBackground(colors.gray3)
-gpu.set(1, 4, string.rep(rx))
+gpu.set(1, 4, string.rep(" ", rx))
 
 gpu.setBackground(colors.white)
-gpu.set(1, 5, string.rep(rx))
+gpu.set(1, 5, string.rep(" ", rx))
 
 
 gpu.setBackground(colors.red)
-gpu.set(1, 6, string.rep(rx))
+gpu.set(1, 6, string.rep(" ", rx))
 
 gpu.setBackground(colors.green)
-gpu.set(1, 7, string.rep(rx))
+gpu.set(1, 7, string.rep(" ", rx))
 
 gpu.setBackground(colors.blue)
-gpu.set(1, 8, string.rep(rx))
+gpu.set(1, 8, string.rep(" ", rx))
 
 
 gpu.setBackground(colors.yellow)
-gpu.set(1, 9, string.rep(rx))
+gpu.set(1, 9, string.rep(" ", rx))
 
 gpu.setBackground(colors.orange)
-gpu.set(1, 10, string.rep(rx))
+gpu.set(1, 10, string.rep(" ", rx))
 
 gpu.setBackground(colors.cyan)
-gpu.set(1, 11, string.rep(rx))
+gpu.set(1, 11, string.rep(" ", rx))
 
 gpu.setBackground(colors.purple)
-gpu.set(1, 12, string.rep(rx))
+gpu.set(1, 12, string.rep(" ", rx))
 
 while true do
     computer.pullSignal()

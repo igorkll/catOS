@@ -20,9 +20,9 @@ lib.purple = 0x8A2BE2
 --------------------------------------------palette
 
 lib.palette = 
-{lib.colors.black, lib.colors.gray1, lib.colors.gray2, lib.colors.gray3,
-lib.colors.white, lib.colors.red, lib.colors.green, lib.colors.blue,
-lib.colors.yellow, lib.colors.orange, lib.colors.cyan, lib.colors.purple,
+{lib.black, lib.gray1, lib.gray2, lib.gray3,
+lib.white, lib.red, lib.green, lib.blue,
+lib.yellow, lib.orange, lib.cyan, lib.purple,
 -1, -1, -1, -1}
 
 lib.freePaletteIndex = {}
