@@ -21,53 +21,20 @@ do --atan2 в Lua 5.3
 end
 
 do --системма слушателей
+    local computer_pullSignal = computer.pullSignal
 
-end
+    local timers = {}
+    local listens = {}
 
-do --сырые прирывания помогают избежать to load...
-    function _G.raw_interrupt()
-        local tbl = {computer.pullSignal(0)}
-        if #tbl > 0 then
-            computer.pushSignal(table.unpack(tbl))
-        end
-    end
-end
-
-do --для таблиц в event
-    local buffer = {}
-
-    local oldPull = computer.pullSignal
-    local oldPush = computer.pushSignal
-    local tinsert = table.insert
-    local tunpack = table.unpack
-    local tremove = table.remove
-
-    function computer.pullSignal(timeout)
-        if #buffer == 0 then
-            return oldPull(timeout)
-        else
-            local data = buffer[1]
-            tremove(buffer, 1)
-            return tunpack(data)
-        end
+    function registerTimer(period, func, times)
+        checkArg(1, period, "number")
+        checkArg(2, func, "function")
+        checkArg(3, times, "number")
+        table.insert(timers, {period = period, func = func, times = times})
     end
 
-    function computer.pushSignal(...)
-        tinsert(buffer, {...})
-        return true
-    end
-end
-
-do --прирывания
-    local uptime = computer.uptime
-    local oldInterruptTime = uptime()
-    _G.interruptTime = 1
-
-    function _G.interrupt()
-        if uptime() - oldInterruptTime > _G.interruptTime then
-            os.sleep()
-            oldInterruptTime = uptime()
-        end
+    function computer.pullSignal(time)
+        
     end
 end
 
@@ -95,6 +62,15 @@ function os.sleep(time)
     local inTime = computer.uptime()
     while computer.uptime() - inTime < time do
         computer.pullSignal(time - (computer.uptime() - inTime))
+    end
+end
+
+local oldInterruptTime = computer.uptime()
+_G.interruptTime = 1
+function _G.interrupt()
+    if computer.uptime() - oldInterruptTime > _G.interruptTime then
+        os.sleep()
+        oldInterruptTime = uptime()
     end
 end
 
