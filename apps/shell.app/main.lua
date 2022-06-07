@@ -14,8 +14,6 @@ scene.select()
 
 while true do
     local eventData = {computer.pullSignal()}
-    if eventData[1] == "mainButtonPressed" and eventData[2] == 0 then
-        return
-    end
+    if eventData[1] == "mainButtonPressed" and eventData[2] == 0 then computer.shutdown() end
     gui.uploadEvent(table.unpack(eventData))
 end

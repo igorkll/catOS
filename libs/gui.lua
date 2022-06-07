@@ -128,7 +128,7 @@ function lib.createScene(color, resx, resy)
         
         function obj.uploadEvent(...)
             local tbl = {...}
-            if mode == 0 then
+            if obj.mode == 0 then
                 if tbl[1] == "touch" and tbl[5] == 0 and tbl[3] >= obj.posX and tbl[3] < (obj.posX + obj.sizeX) then
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = true
@@ -139,7 +139,7 @@ function lib.createScene(color, resx, resy)
                         obj.callback(true, false)
                     end
                 end
-            elseif mode == 1 then
+            elseif obj.mode == 1 then
                 if tbl[1] == "touch" and tbl[5] == 0 and tbl[3] >= obj.posX and tbl[3] < (obj.posX + obj.sizeX) then
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = not obj.state
@@ -147,15 +147,16 @@ function lib.createScene(color, resx, resy)
                         obj.callback(obj.state, not obj.state)
                     end
                 end
-            elseif mode == 2 then
+            elseif obj.mode == 2 then
                 if tbl[1] == "touch" and tbl[5] == 0 and tbl[3] >= obj.posX and tbl[3] < (obj.posX + obj.sizeX) then
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = not obj.state
                         obj.draw()
                         obj.callback(obj.state, not obj.state)
+                        return
                     end
                 end
-                if tbl[1] == "drop" then
+                if (tbl[1] == "drop" or tbl[1] == "touch") and obj.state then
                     obj.state = false
                     obj.draw()
                     obj.callback(obj.state, not obj.state)
@@ -168,13 +169,57 @@ function lib.createScene(color, resx, resy)
         return obj
     end
 
+    function scene.createLabel(x, y, sizeX, sizeY, text)
+        local obj = {}
+        obj.backColor = colors.white
+        obj.foreColor = colors.gray2
+        obj.text = text
+
+        obj.posX = x + lib.posXadd
+        obj.posY = y + lib.posYadd
+
+        obj.sizeX = sizeX
+        obj.sizeY = sizeY
+
+        obj.removed = false
+
+        function obj.checkRemove()
+            if scene.removed then error("this object removed", 0) end
+        end
+
+        function obj.remove()
+            obj.checkRemove()
+            utiles.table_remove(scene.objs, obj)
+            scene.removed = true
+        end
+
+        function obj.draw()
+            obj.checkRemove()
+            gpu.setBackground(obj.backColor)
+            gpu.setForeground(obj.foreColor)
+            gpu.fill(obj.posX, obj.posY, obj.sizeX, obj.sizeY, " ")
+            lib.drawText(obj.posX, obj.posY, obj.sizeX, obj.sizeY, obj.text)
+        end
+        
+        function obj.uploadEvent(...)
+        end
+        
+        table.insert(scene.objs, obj)
+        table.insert(scene.removeCallbacks, obj.remove)
+        return obj
+    end
+
     --------------------------------------------
 
-    local cx = scene.sizeX / 2
-
-    local mainbutton = scene.createButton(cx, scene.resy + 1, 1, 1, "◖◗", function() computer.pushSignal("mainButtonPressed", 0) end)
     
     table.insert(lib.scenes, scene)
+
+    local mainbutton = scene.createButton(scene.resx / 2, scene.resy + 1, 2, 1, "◖◗", function(new) if new == false then computer.pushSignal("mainButtonPressed", 0) end end, 2)
+    mainbutton.backColor = colors.purple
+    mainbutton.foreColor = colors.white
+    mainbutton.invBackColor = colors.purple
+    mainbutton.invForeColor = colors.red
+
     return scene
 end
 
