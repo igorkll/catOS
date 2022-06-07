@@ -23,14 +23,21 @@ end
 do --системма слушателей
     local computer_pullSignal = computer.pullSignal
 
-    local timers = {}
-    local listens = {}
+    listensError = {}
+    timers = {}
+    listens = {}
+
+    local function runCallback(func, ...)
+        local tbl = {pcall(func, ...)}
+        if not tbl[1] then return nil, tbl[2] end
+        return true, table.unpack(tbl, 2)
+    end
 
     function registerTimer(period, func, times)
         checkArg(1, period, "number")
         checkArg(2, func, "function")
         checkArg(3, times, "number")
-        table.insert(timers, {period = period, func = func, times = times})
+        table.insert(timers, {period = period, func = func, times = times, oldTime = -math.huge})
     end
 
     function registerListen(eventName, func)
@@ -40,14 +47,27 @@ do --системма слушателей
     end
 
     function computer.pullSignal(time)
-        local tbl = {computer.pullSignal(0.1)}
-
-        if #tbl > 0 then
-            for i, v in ipairs(listens) do
-                
+        local inTime = computer.uptime()
+        while computer.uptime() - inTime < time do
+            local tbl = {computer_pullSignal(0.1)}
+            for i = #timers, 1. -1 do
+                if computer.uptime() - timers[i].oldTime > timers[i].period then
+                    
+                end
             end
 
-            return table.unpack(tbl)
+            if #tbl > 0 then
+                for i = #listens, 1, -1 do
+                    if not listens[i].eventName or listens[i].eventName == tbl[1] then
+                        local ok, value = runCallback(listens[i].func)
+                        if ok and value == false then
+                            table.remove(listens, i)
+                        end
+                    end
+                end
+
+                return table.unpack(tbl)
+            end
         end
     end
 end
