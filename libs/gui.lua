@@ -91,6 +91,7 @@ function lib.createScene(color, resx, resy)
         obj.text = text
 
         obj.mode = mode or 0
+        obj.callback = callback or function() end
 
         obj.posX = x + lib.posXadd
         obj.posY = y + lib.posYadd
@@ -135,6 +136,7 @@ function lib.createScene(color, resx, resy)
                         computer.delay()
                         obj.state = false
                         obj.draw()
+                        obj.callback(true, false)
                     end
                 end
             elseif mode == 1 then
@@ -142,6 +144,7 @@ function lib.createScene(color, resx, resy)
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = not obj.state
                         obj.draw()
+                        obj.callback(obj.state, not obj.state)
                     end
                 end
             elseif mode == 2 then
@@ -149,11 +152,13 @@ function lib.createScene(color, resx, resy)
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = not obj.state
                         obj.draw()
+                        obj.callback(obj.state, not obj.state)
                     end
                 end
                 if tbl[1] == "drop" then
                     obj.state = false
                     obj.draw()
+                    obj.callback(obj.state, not obj.state)
                 end
             end
         end

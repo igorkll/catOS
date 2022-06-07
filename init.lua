@@ -193,6 +193,7 @@ function require(name)
 
     return loadedLibs[name]
 end
+local fs = require("filesystem")
 
 --------------------------------------------graphic
 
@@ -203,66 +204,49 @@ gpu.setDepth(4)
 local colors = require("colors")
 colors.applyPalette()
 
---------------------------------------------
+--------------------------------------------OS
+
+function loadprogramm(path)
+    if not fs.exists(path) then return nil, "no this application" end
+    if fs.isDirectory(path) then path = fs.concat(path, "main.lua") end
+    if not fs.exists(path) then return nil, "no main.lua file" end
+    local code, err = loadfile(path)
+    if not code then return nil, err end
+    return code
+end
+
+function os.execute(path, ...)
+    return xpcall(loadprogramm(path), debug.traceback, ...)
+end
+
+--------------------------------------------main
 
 local rx, ry = 16, 12
 gpu.setResolution(rx, ry)
-
 gpu.setBackground(colors.black)
 gpu.set(1, 1, string.rep(" ", rx))
-
 gpu.setBackground(colors.gray1)
 gpu.set(1, 2, string.rep(" ", rx))
-
 gpu.setBackground(colors.gray2)
 gpu.set(1, 3, string.rep(" ", rx))
-
 gpu.setBackground(colors.gray3)
 gpu.set(1, 4, string.rep(" ", rx))
-
 gpu.setBackground(colors.white)
 gpu.set(1, 5, string.rep(" ", rx))
-
-
 gpu.setBackground(colors.red)
 gpu.set(1, 6, string.rep(" ", rx))
-
 gpu.setBackground(colors.green)
 gpu.set(1, 7, string.rep(" ", rx))
-
 gpu.setBackground(colors.blue)
 gpu.set(1, 8, string.rep(" ", rx))
-
-
 gpu.setBackground(colors.yellow)
 gpu.set(1, 9, string.rep(" ", rx))
-
 gpu.setBackground(colors.orange)
 gpu.set(1, 10, string.rep(" ", rx))
-
 gpu.setBackground(colors.cyan)
 gpu.set(1, 11, string.rep(" ", rx))
-
 gpu.setBackground(colors.purple)
 gpu.set(1, 12, string.rep(" ", rx))
+os.sleep(2)
 
-computer.pullSignal()
-
-local function loop()
-    local gui = require("gui")
-    
-    local scene = gui.createScene(colors.red, 50, 16)
-    local b1 = scene.createButton(1, 1, 8, 3, "asd123", function()
-        
-    end, 2)
-
-    scene.select()
-
-    while true do
-        gui.uploadEvent(computer.pullSignal())
-    end
-end
-local ok, err = xpcall(loop, debug.traceback)
-if not ok then
-    error(err, 0)
-end
+assert(os.execute("shell.app"))
