@@ -216,7 +216,9 @@ function loadprogramm(path)
 end
 
 function os.execute(path, ...)
-    return xpcall(loadprogramm(path), debug.traceback, ...)
+    local code, err = loadprogramm(path)
+    if not code then return nil, err end
+    return xpcall(code, debug.traceback, ...)
 end
 
 --------------------------------------------main
@@ -249,4 +251,4 @@ gpu.setBackground(colors.purple)
 gpu.set(1, 12, string.rep(" ", rx))
 os.sleep(2)
 
-assert(os.execute("shell.app"))
+assert(os.execute("/apps/shell.app"))

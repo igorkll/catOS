@@ -170,11 +170,16 @@ function lib.createScene(color, resx, resy)
 
     --------------------------------------------
 
+    local cx = scene.sizeX / 2
+
+    local mainbutton = scene.createButton(cx, scene.resy + 1, 1, 1, "◖◗", function() computer.pushSignal("mainButtonPressed", 0) end)
+    
     table.insert(lib.scenes, scene)
     return scene
 end
 
 function lib.uploadEvent(...)
+    if not lib.scene then return end
     lib.scene.uploadEvent(...)
 end
 
