@@ -1,12 +1,5 @@
 local colors = require("colors")
-
-local function table_remove(tbl, obj)
-    for i = 1, #tbl do
-        if tbl[i] == obj then
-            table.remove(tbl, i)
-        end
-    end
-end
+local utiles = require("utiles")
 
 --------------------------------------------
 
@@ -30,6 +23,15 @@ function lib.maxResolution()
     local mx, my = gpu.maxResolution()
     my = my - lib.resYadd
     return mx, my
+end
+
+function lib.getCenter(posX, posY, sizeX, sizeY)
+    return math.floor((posX + (sizeX / 2)) + 0.5), math.floor((posY + (sizeY / 2)) + 0.5)
+end
+
+function lib.drawText(posX, posY, sizeX, sizeY, text)
+    local x, y = lib.getCenter(posX, posY, text)
+    gpu.set(math.floor((x - (unicode.len(text) / 2)) + 0.5), y, text)
 end
 
 function lib.createScene(color, resx, resy)
@@ -68,7 +70,7 @@ function lib.createScene(color, resx, resy)
         scene.checkRemove()
         for i, v in ipairs(scene.leaveCallbacks) do v() end
         for i, v in ipairs(scene.removeCallbacks) do v() end
-        table_remove(lib.scenes, lib)
+        utiles.table_remove(lib.scenes, lib)
         scene.removed = true
     end
 
@@ -79,12 +81,15 @@ function lib.createScene(color, resx, resy)
 
     --------------------------------------------
 
-    function lib.createButton(x, y, sizeX, sizeY, text, callback)
+    function lib.createButton(x, y, sizeX, sizeY, text, callback, mode)
         local obj = {}
         obj.backColor = colors.white
         obj.foreColor = colors.gray2
         obj.invBackColor = colors.gray1
         obj.invForeColor = colors.black
+        obj.text = text
+
+        obj.mode = mode or 0
 
         obj.posX = x + lib.posXadd
         obj.posY = y + lib.posYadd
@@ -92,8 +97,30 @@ function lib.createScene(color, resx, resy)
         obj.sizeX = sizeX
         obj.sizeY = sizeY
 
+        obj.state = false
+
+        obj.removed = false
+
+        function obj.checkRemove()
+            if scene.removed then error("this object removed", 0) end
+        end
+
+        function obj.remove()
+            obj.checkRemove()
+            scene.removed = true
+        end
+
         function obj.draw()
-            gpu.fill(obj.posX, obj.posY, )
+            obj.checkRemove()
+            if utiles.xor(obj.state, obj.mode == 2) then
+                gpu.setBackground(obj.invBackColor)
+                gpu.setForeground(obj.invForeColor)
+            else
+                gpu.setBackground(obj.backColor)
+                gpu.setForeground(obj.foreColor)
+            end
+            gpu.fill(obj.posX, obj.posY, obj.sizeX, obj.sizeY, " ")
+            lib.drawText(obj.posX, obj.posY, obj.sizeX, obj.sizeY, obj.text)
         end
     
         table.insert(scene.objs, obj)
