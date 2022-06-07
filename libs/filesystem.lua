@@ -1,6 +1,3 @@
-local component = require("component")
-local unicode = require("unicode")
-
 local filesystem = {}
 local mtab = {name = "", children = {}, links = {}}
 local fstab = {}
@@ -697,6 +694,53 @@ function filesystem.rename(oldPath, newPath)
         end
         return nil, "trying to read from or write to virtual directory"
     end
+end
+
+-------------------------------------------------------------------------------
+
+filesystem.mount(bootfs, "/")
+
+-------------------------------------------------------------------------------
+
+function filesystem.getFile(path)
+    local file, err = filesystem.open(path, "rb")
+    if not file then error("kaka:" .. path) return nil, err end
+    local buffer = ""
+    while true do
+        local read = file:read(math.huge)
+        if not read then break end
+        buffer = buffer .. read
+    end
+    file:close()
+    return buffer
+end
+
+function filesystem.saveFile(path, data)
+    local file, err = filesystem.open(path, "wb")
+    if not file then return nil, err end
+    file:write(data or "")
+    file:close()
+    return true
+end
+
+-------------------------------------------------------------------------------
+
+function loadfile(path, mode, env)
+    local data, err = filesystem.getFile(path)
+    if not data then return nil, err end
+    local code, err = load(data, "=" .. path, mode or "bt", env or createEnv())
+    if not code then return nil, err end
+    return code
+end
+
+function dofile(path, ...)
+    local code = assert(loadfile(path))
+    return code(...)
+end
+
+function edofile(path, mode, env, ...)
+    local code = assert(loadfile(path, mode, env))
+    return code(...)
 end
 
 -------------------------------------------------------------------------------
