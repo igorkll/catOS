@@ -26,7 +26,7 @@ function lib.maxResolution()
 end
 
 function lib.getCenter(posX, posY, sizeX, sizeY)
-    return math.floor((posX + (sizeX / 2)) + 0.5), math.floor((posY + (sizeY / 2) + 0.5))
+    return math.floor((posX + (sizeX // 2)) + 0.5), math.floor((posY + (sizeY // 2)) + 0.5)
 end
 
 function lib.drawText(posX, posY, sizeX, sizeY, text)

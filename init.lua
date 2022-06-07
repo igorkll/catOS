@@ -6,10 +6,66 @@
 палитра состоит из 12 цветов 4 зарезервированы под нужды программ
 ]]
 
---------------------------------------------preinit
+--------------------------------------------lua version check
 
 if computer.setArchitecture then pcall(computer.setArchitecture, "Lua 5.3") end --зашита от моих биосов(они усторели и удин удаляет setArchitecture а другой заставляет его выдать ошибку)
 if _VERSION ~= "Lua 5.3" then error("requires Lua 5.3 pull out the processor and press shift plus the right mouse button on it", 0) end
+
+--------------------------------------------preinit
+
+do --сырые прирывания помогают избежать to load...
+    function _G.raw_interrupt()
+        local tbl = {computer.pullSignal(0)}
+        if #tbl > 0 then
+            computer.pushSignal(table.unpack(tbl))
+        end
+    end
+end
+
+do --для таблиц в event
+    local buffer = {}
+
+    local oldPull = computer.pullSignal
+    local oldPush = computer.pushSignal
+    local tinsert = table.insert
+    local tunpack = table.unpack
+    local tremove = table.remove
+
+    function computer.pullSignal(timeout)
+        if #buffer == 0 then
+            return oldPull(timeout)
+        else
+            local data = buffer[1]
+            tremove(buffer, 1)
+            return tunpack(data)
+        end
+    end
+
+    function computer.pushSignal(...)
+        tinsert(buffer, {...})
+        return true
+    end
+end
+
+do --прирывания
+    local uptime = computer.uptime
+    local oldInterruptTime = uptime()
+    _G.interruptTime = 1
+
+    function _G.interrupt()
+        if uptime() - oldInterruptTime > _G.interruptTime then
+            
+            oldInterruptTime = uptime()
+        end
+    end
+end
+
+do --atan2 в Lua 5.3
+    local atan = math.atan
+    function math.atan2(y, x)
+        return atan(y / x)
+    end
+end
 
 --------------------------------------------main
 
@@ -128,7 +184,7 @@ do
     local scene = gui.createScene(colors.red, 50, 16)
     local b1 = scene.createButton(1, 1, 8, 3, "asd123", function()
         
-    end, 2)
+    end, 0)
 
     scene.select()
 
