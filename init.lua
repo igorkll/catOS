@@ -33,8 +33,22 @@ do --системма слушателей
         table.insert(timers, {period = period, func = func, times = times})
     end
 
+    function registerListen(eventName, func)
+        checkArg(1, eventName, "string", "nil")
+        checkArg(2, func, "function")
+        table.insert(listens, {eventName = eventName, func = func})
+    end
+
     function computer.pullSignal(time)
-        
+        local tbl = {computer.pullSignal(0.1)}
+
+        if #tbl > 0 then
+            for i, v in ipairs(listens) do
+                
+            end
+
+            return table.unpack(tbl)
+        end
     end
 end
 
