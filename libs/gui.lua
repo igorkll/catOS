@@ -17,6 +17,9 @@ lib.scene = false
 lib.posXadd = 0
 lib.posYadd = 1
 
+lib.resXadd = 0
+lib.resYadd = 2
+
 function lib.drawUi()
     local rx, ry = gpu.getResolution()
     gpu.setBackground(colors.purple)
@@ -25,7 +28,7 @@ end
 
 function lib.maxResolution()
     local mx, my = gpu.maxResolution()
-    my = my - 2
+    my = my - lib.resYadd
     return mx, my
 end
 
@@ -47,7 +50,7 @@ function lib.createScene(color, resx, resy)
 
     function scene.draw()
         scene.checkRemove()
-        gpu.setResolution(scene.resy, scene.resy + 2)
+        gpu.setResolution(scene.resy, scene.resy)
         lib.drawUi()
         gpu.setBackground(scene.color)
         gpu.fill(1 + lib.posXadd, 1 + lib.posYadd, scene.resx, scene.resy, " ")
@@ -77,11 +80,29 @@ function lib.createScene(color, resx, resy)
     --------------------------------------------
 
     function lib.createButton(x, y, sizeX, sizeY, text, callback)
-        
+        local obj = {}
+        obj.backColor = colors.white
+        obj.foreColor = colors.gray2
+        obj.invBackColor = colors.gray1
+        obj.invForeColor = colors.black
+
+        obj.posX = x + lib.posXadd
+        obj.posY = y + lib.posYadd
+
+        obj.sizeX = sizeX
+        obj.sizeY = sizeY
+
+        function obj.draw()
+            gpu.fill(obj.posX, obj.posY, )
+        end
+    
+        table.insert(scene.objs, obj)
+        return obj
     end
 
     --------------------------------------------
 
+    table.insert(lib.scenes, scene)
     return scene
 end
 
