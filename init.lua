@@ -13,6 +13,17 @@ if _VERSION ~= "Lua 5.3" then error("requires Lua 5.3 pull out the processor and
 
 --------------------------------------------preinit
 
+do --atan2 в Lua 5.3
+    local atan = math.atan
+    function math.atan2(y, x)
+        return atan(y / x)
+    end
+end
+
+do --системма слушателей
+
+end
+
 do --сырые прирывания помогают избежать to load...
     function _G.raw_interrupt()
         local tbl = {computer.pullSignal(0)}
@@ -54,16 +65,9 @@ do --прирывания
 
     function _G.interrupt()
         if uptime() - oldInterruptTime > _G.interruptTime then
-            
+            os.sleep()
             oldInterruptTime = uptime()
         end
-    end
-end
-
-do --atan2 в Lua 5.3
-    local atan = math.atan
-    function math.atan2(y, x)
-        return atan(y / x)
     end
 end
 
@@ -86,6 +90,13 @@ function createEnv()
 end
 bootaddress = computer.getBootAddress()
 bootfs = component.proxy(bootaddress)
+
+function os.sleep(time)
+    local inTime = computer.uptime()
+    while computer.uptime() - inTime < time do
+        computer.pullSignal(time - (computer.uptime() - inTime))
+    end
+end
 
 --------------------------------------------raw
 
