@@ -132,6 +132,7 @@ function lib.createScene(color, resx, resy)
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = true
                         obj.draw()
+                        computer.delay()
                         obj.state = false
                         obj.draw()
                     end

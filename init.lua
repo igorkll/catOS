@@ -20,6 +20,40 @@ do --atan2 в Lua 5.3
     end
 end
 
+do --спяший режим
+    local computer = computer
+    local computer_pullSignal = computer.pullSignal
+    local computer_pushSignal = computer.pushSignal
+    local computer_uptime = computer.uptime
+    local table_unpack = table.unpack
+    local checkArg = checkArg
+
+    uptimeAdd = 0
+    function computer.uptime()
+        return computer_uptime() + uptimeAdd
+    end
+
+    function computer.sleep(time, saveEvent, doNotCorectUptime)
+        checkArg(1, time, "number")
+        checkArg(2, saveEvent, "nil", "boolean")
+        checkArg(3, doNotCorectUptime, "nil", "boolean")
+        local inTime = computer_uptime()
+        while computer_uptime() - inTime < time do
+            local eventData = {computer_pullSignal(time - (computer_uptime() - inTime))}
+            if saveEvent and #eventData > 0 then
+                computer_pushSignal(table_unpack(eventData))
+            end
+        end
+        if not doNotCorectUptime then
+            uptimeAdd = uptimeAdd - (computer_uptime() - inTime)
+        end
+    end
+
+    function computer.delay(time)
+        computer.sleep(time or 0.1, true, true)
+    end
+end
+
 do --системма слушателей
     local computer_pullSignal = computer.pullSignal
 
@@ -34,10 +68,11 @@ do --системма слушателей
     end
 
     function registerTimer(period, func, times)
+        if not times then times = 1 end
         checkArg(1, period, "number")
         checkArg(2, func, "function")
         checkArg(3, times, "number")
-        table.insert(timers, {period = period, func = func, times = times, oldTime = -math.huge})
+        table.insert(timers, {period = period, func = func, times = times, oldTime = computer.uptime()})
     end
 
     function registerListen(eventName, func)
@@ -47,12 +82,21 @@ do --системма слушателей
     end
 
     function computer.pullSignal(time)
+        if not time then time = math.huge end
         local inTime = computer.uptime()
         while computer.uptime() - inTime < time do
             local tbl = {computer_pullSignal(0.1)}
-            for i = #timers, 1. -1 do
+            for i = #timers, 1, -1 do
                 if computer.uptime() - timers[i].oldTime > timers[i].period then
-                    
+                    local ok, value = runCallback(timers[i].func)
+                    timers[i].times = timers[i].times - 1
+                    if ok then
+                        if value == false or timers[i].times <= 0 then
+                            table.remove(timers, i)
+                        end
+                    else
+                        table.insert(listensError, value)
+                    end
                 end
             end
 
@@ -60,8 +104,12 @@ do --системма слушателей
                 for i = #listens, 1, -1 do
                     if not listens[i].eventName or listens[i].eventName == tbl[1] then
                         local ok, value = runCallback(listens[i].func)
-                        if ok and value == false then
-                            table.remove(listens, i)
+                        if ok then
+                            if value == false then
+                                table.remove(timers, i)
+                            end
+                        else
+                            table.insert(listensError, value)
                         end
                     end
                 end
@@ -93,6 +141,7 @@ bootaddress = computer.getBootAddress()
 bootfs = component.proxy(bootaddress)
 
 function os.sleep(time)
+    if not time then time = 0.1 end
     local inTime = computer.uptime()
     while computer.uptime() - inTime < time do
         computer.pullSignal(time - (computer.uptime() - inTime))
@@ -199,17 +248,21 @@ gpu.set(1, 12, string.rep(" ", rx))
 
 computer.pullSignal()
 
-do
+local function loop()
     local gui = require("gui")
     
     local scene = gui.createScene(colors.red, 50, 16)
     local b1 = scene.createButton(1, 1, 8, 3, "asd123", function()
         
-    end, 0)
+    end, 2)
 
     scene.select()
 
     while true do
         gui.uploadEvent(computer.pullSignal())
     end
+end
+local ok, err = xpcall(loop, debug.traceback)
+if not ok then
+    error(err, 0)
 end
