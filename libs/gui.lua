@@ -64,6 +64,7 @@ function lib.createScene(color, resx, resy)
         if lib.scene then for i, v in ipairs(lib.scene.leaveCallbacks) do v() end end
         lib.scene = scene
         for i, v in ipairs(scene.selectCallbacks) do v() end
+        scene.draw()
     end
 
     function lib.remove()
@@ -107,12 +108,13 @@ function lib.createScene(color, resx, resy)
 
         function obj.remove()
             obj.checkRemove()
+            utiles.table_remove(scene.objs, obj)
             scene.removed = true
         end
 
         function obj.draw()
             obj.checkRemove()
-            if utiles.xor(obj.state, obj.mode == 2) then
+            if utiles.xor(obj.state, obj.mode == 1) then
                 gpu.setBackground(obj.invBackColor)
                 gpu.setForeground(obj.invForeColor)
             else
@@ -122,8 +124,41 @@ function lib.createScene(color, resx, resy)
             gpu.fill(obj.posX, obj.posY, obj.sizeX, obj.sizeY, " ")
             lib.drawText(obj.posX, obj.posY, obj.sizeX, obj.sizeY, obj.text)
         end
-    
+        
+        function obj.uploadEvent(...)
+            local tbl = {...}
+            if mode == 0 then
+                if tbl[1] == "touch" and tbl[5] == 0 and tbl[3] >= obj.posX and tbl[3] < (obj.posX + obj.sizeX) then
+                    if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
+                        obj.state = true
+                        obj.draw()
+                        obj.state = false
+                        obj.draw()
+                    end
+                end
+            elseif mode == 1 then
+                if tbl[1] == "touch" and tbl[5] == 0 and tbl[3] >= obj.posX and tbl[3] < (obj.posX + obj.sizeX) then
+                    if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
+                        obj.state = not obj.state
+                        obj.draw()
+                    end
+                end
+            elseif mode == 2 then
+                if tbl[1] == "touch" and tbl[5] == 0 and tbl[3] >= obj.posX and tbl[3] < (obj.posX + obj.sizeX) then
+                    if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
+                        obj.state = not obj.state
+                        obj.draw()
+                    end
+                end
+                if tbl[1] == "drop" then
+                    obj.state = false
+                    obj.draw()
+                end
+            end
+        end
+        
         table.insert(scene.objs, obj)
+        table.insert(scene.removeCallbacks, obj.remove)
         return obj
     end
 
@@ -132,7 +167,5 @@ function lib.createScene(color, resx, resy)
     table.insert(lib.scenes, scene)
     return scene
 end
-
-
 
 return lib
