@@ -252,4 +252,17 @@ function lib.uploadEvent(...)
     lib.scene.uploadEvent(...)
 end
 
+function lib.draw()
+    if not lib.scene then return end
+    lib.scene.draw()
+end
+
+function lib.splash(text)
+    local mx, my = gpu.maxResolution()
+    gpu.setResolution(mx, my)
+    gpu.setBackground(colors.white)
+    gpu.fill(1 + lib.posXadd, 1 + lib.posYadd, mx - lib.resXadd, my - lib.resYadd, " ")
+    lib.drawText(1, 1, mx, my, text)
+end
+
 return lib
