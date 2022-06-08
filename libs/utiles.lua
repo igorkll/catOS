@@ -5,7 +5,7 @@ local fs = require("filesystem")
 local lib = {}
 
 function lib.table_remove(tbl, obj)
-    for i = 1, #tbl do
+    for i = #tbl, 1, -1 do
         if tbl[i] == obj then
             table.remove(tbl, i)
         end

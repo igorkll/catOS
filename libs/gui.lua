@@ -7,10 +7,6 @@ local lib = {}
 lib.scenes = {}
 lib.scene = false
 
-registerTimer(1, function()
-    computer.beep((#lib.scenes + 1) * 100)
-end, math.huge)
-
 lib.posXadd = 0
 lib.posYadd = 1
 
@@ -70,12 +66,8 @@ function lib.createScene(color, resx, resy)
 
     scene.service = {}
 
-    function scene.checkRemove()
-        if scene.removed then error("this scene removed", 0) end
-    end
-
     function scene.draw()
-        scene.checkRemove()
+        if scene.removed then return end
         gpu.setResolution(scene.resx + lib.resXadd, scene.resy + lib.resYadd)
         lib.drawUi()
         gpu.setBackground(scene.color)
@@ -90,7 +82,7 @@ function lib.createScene(color, resx, resy)
     end
 
     function scene.select()
-        scene.checkRemove()
+        if scene.removed then return end
         if lib.scene then callTbl(scene.leaveCallbacks) end
         lib.scene = scene
         callTbl(scene.selectCallbacks)
@@ -98,15 +90,18 @@ function lib.createScene(color, resx, resy)
     end
 
     function scene.remove()
-        scene.checkRemove()
+        if scene.removed then return end
+        scene.removed = true
+        for i, v in ipairs(scene.timers) do
+            cancelTimer(v)
+        end
         callTbl(scene.leaveCallbacks)
         callTbl(scene.removeCallbacks)
         utiles.table_remove(lib.scenes, scene)
-        scene.removed = true
     end
 
     function scene.uploadEvent(...)
-        scene.checkRemove()
+        if scene.removed then return end
         for i, v in ipairs(scene.objs) do v.uploadEvent(...) end
     end
 
@@ -133,18 +128,15 @@ function lib.createScene(color, resx, resy)
 
         obj.removed = false
 
-        function obj.checkRemove()
-            if scene.removed then error("this object removed", 0) end
-        end
 
         function obj.remove()
-            obj.checkRemove()
+            if obj.removed then return end
             utiles.table_remove(scene.objs, obj)
             scene.removed = true
         end
 
         function obj.draw()
-            obj.checkRemove()
+            if obj.removed then return end
             if utiles.xor(obj.state, obj.mode == 1) then
                 gpu.setBackground(obj.invBackColor)
                 gpu.setForeground(obj.invForeColor)
@@ -213,12 +205,8 @@ function lib.createScene(color, resx, resy)
 
         obj.removed = false
 
-        function obj.checkRemove()
-            if scene.removed then error("this object removed", 0) end
-        end
-
         function obj.remove()
-            obj.checkRemove()
+            if obj.removed then return end
             utiles.table_remove(scene.objs, obj)
             scene.removed = true
             for i, v in ipairs(scene.timers) do
@@ -227,7 +215,7 @@ function lib.createScene(color, resx, resy)
         end
 
         function obj.draw()
-            obj.checkRemove()
+            if obj.removed then return end
             gpu.setBackground(obj.backColor)
             gpu.setForeground(obj.foreColor)
             gpu.fill(obj.posX, obj.posY, obj.sizeX, obj.sizeY, " ")
@@ -235,6 +223,7 @@ function lib.createScene(color, resx, resy)
         end
         
         function obj.uploadEvent(...)
+            if obj.removed then return end
         end
         
         table.insert(scene.objs, obj)

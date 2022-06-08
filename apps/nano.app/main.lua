@@ -94,16 +94,18 @@ local profile_label = scene.createLabel(1, 1, 32, 1, "profile:" .. nikname)
 local full_upload = scene.createButton(1, 2, 32, 1, "full upload", function()
     for i, v in ipairs(profile.states) do
         gui.status("uploading: " .. tostring(i) .. "/" .. tostring(inputCount))
-        nano.setInput(i, v.state)
+        nano.setInput(i, v)
     end
     gui.draw()
 end)
 
 local download = scene.createButton(1, 3, 32, 1, "download", function()
-    for i, v in ipairs(profile.states) do
+    for i = 1, inputCount do
         gui.status("download: " .. tostring(i) .. "/" .. tostring(inputCount))
-        nano.setInput(i, v.state)
+        profile.states[i] = nano.getInput(i)
+        statesButtons[i].state = profile.states[i]
     end
+    saveCfg()
     gui.draw()
 end)
 
