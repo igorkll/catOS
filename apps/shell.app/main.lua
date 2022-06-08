@@ -9,7 +9,7 @@ local thisPath = fs.path(utiles.getPath())
 thisPath = unicode.sub(thisPath, 1, unicode.len(thisPath) - 1)
 
 local rx, ry = gui.maxResolution()
-local rx, ry = 27, 10
+--local rx, ry = 25, 10
 local scene = gui.createScene(colors.green, rx, ry)
 
 --------------------------------------------
@@ -23,13 +23,22 @@ local function refreshAppList()
     for file in fs.list("/apps") do
         local full_path = fs.concat("/apps", file)
         if full_path ~= thisPath then
-            local b = scene.createButton(((count * 9) % (rx - 9)) + 1,
-            (((count * 9) // rx) * 5) + 1, 8, 4, fs.name(full_path), function()
+            local name = fs.name(full_path)
+            if name:find("%.") then
+                local parts = utiles.split(name, ".")
+                parts[#parts] = nil
+                name = table.concat(parts, ".")
+            end
+
+            local b = scene.createButton(((count % (rx // 9)) * 9) + 1,
+            (((count * 9) // (rx - 8)) * 5) + 1, 8, 4, name, function()
                 os.execute(full_path)
             end)
             count = count + 1
             b.backColor = colors.yellow
             b.foreColor = colors.orange
+            b.invBackColor = colors.cyan
+            b.invForeColor = colors.red
             table.insert(appsButtons, b)
         end
     end

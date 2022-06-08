@@ -218,7 +218,7 @@ function lib.createScene(color, resx, resy)
     
     table.insert(lib.scenes, scene)
 
-    local mainbutton = scene.createButton(scene.resx / 2, scene.resy + 1, 2, 1, "◖◗", function(new) if new == false then computer.pushSignal("exitPressed") end end, 2)
+    local mainbutton = scene.createButton(scene.resx / 2, scene.resy + 1, 2, 1, "◖◗", function() computer.pushSignal("exitPressed") end, 0)
     mainbutton.backColor = colors.purple
     mainbutton.foreColor = colors.white
     mainbutton.invBackColor = colors.purple

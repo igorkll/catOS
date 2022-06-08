@@ -13,7 +13,7 @@ lib.green = 0x3CB371
 lib.blue = 0x1E90FF
 
 lib.yellow = 0xFFD700
-lib.orange = 0xFF4500
+lib.orange = 0xFF8C00
 lib.cyan = 0x7FFFD4
 lib.purple = 0x8A2BE2
 

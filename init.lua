@@ -261,7 +261,7 @@ end
 
 --------------------------------------------main
 
-if false then
+if true then
     local rx, ry = 16, 12
     gpu.setResolution(rx, ry)
     gpu.setBackground(colors.black)
