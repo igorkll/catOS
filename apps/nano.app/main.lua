@@ -9,13 +9,15 @@ if not nikname then error("nikname is not sended", 0) return end
 local thisPath = fs.path(utiles.getPath())
 local nano = dofile(fs.concat(thisPath, "nano.lua"))
 
+gui.status("connectiong")
+
 local inputCount = math.floor(nano.getTotalInputCount())
-if not nano.isOk() then error("нет подключения к нанитам", 0) return end
 
 --------------------------------------------
 
 local rx, ry = gui.maxResolution()
 local scene = gui.createScene(colors.blue, rx, ry)
+_G.nanoScene = scene
 
 --------------------------------------------data base
 
@@ -37,43 +39,53 @@ end
 
 --------------------------------------------profile
 
-local function check()
-    if not nano.isOk() then error("no connection", 0) end
+local function createStr(str)
+    str = unicode.sub(str, 2, unicode.len(str) - 1)
+    local strs = {}
+    for _, dat in ipairs(utiles.split(str, ",")) do
+        local _, d = table.unpack(utiles.split(dat, "."))
+        table.insert(strs, d)
+    end
+    str = table.concat(strs, ", ")
+    str = unicode.sub(str, 1, 64)
+    if str == "" then return false end
+    return str
 end
 
 local profile
 if not cfg.profiles[nikname] then
+    gui.status("profile creating")
+
     cfg.profiles[nikname] = {states = {}, notes = {}}
     profile = cfg.profiles[nikname]
 
     for i = 1, inputCount do
-        gui.status("off pin: " .. tostring(math.floor(i)))
+        gui.status("off pin: " .. tostring(math.floor(i)) .. "/" .. tostring(inputCount))
         nano.setInput(i, false)
-        check()
     end
     for i = 1, inputCount do
         gui.status("check pin: " .. tostring(math.floor(i)) .. "/" .. tostring(inputCount))
         nano.setInput(i, true)
-        check()
         table.insert(profile.states, false)
-        table.insert(profile.notes, nano.getActiveEffects())
-        check()
+        table.insert(profile.notes, createStr(nano.getActiveEffects()))
         nano.setInput(i, false)
-        check()
     end
     saveCfg()
     gui.draw()
+else
+    profile = cfg.profiles[nikname]
 end
 
 --------------------------------------------
 
 local statesButtons = {}
 for i = 1, inputCount do
-    table.insert(statesButtons, scene.createButton(1, i + 4, 16, 1, "input", function(state)
+    table.insert(statesButtons, scene.createButton(1, i + 5, 64, 1, "input: " .. tostring(i) .. ", note: " .. (profile.notes[i] or "none"), function(state)
         nano.setInput(i, state)
         profile.states[i] = state
+        saveCfg()
     end, 1))
-    statesButtons.state = profile.states[i]
+    statesButtons[i].state = profile.states[i]
 end
 
 local profile_label = scene.createLabel(1, 1, 32, 1, "profile:" .. nikname)
@@ -82,7 +94,6 @@ local full_upload = scene.createButton(1, 2, 32, 1, "full upload", function()
     for i, v in ipairs(profile.states) do
         gui.status("uploading: " .. tostring(i) .. "/" .. tostring(inputCount))
         nano.setInput(i, v.state)
-        check()
     end
     gui.draw()
 end)
@@ -91,13 +102,13 @@ local download = scene.createButton(1, 3, 32, 1, "download", function()
     for i, v in ipairs(profile.states) do
         gui.status("download: " .. tostring(i) .. "/" .. tostring(inputCount))
         nano.setInput(i, v.state)
-        check()
     end
     gui.draw()
 end)
 
-local removeProfile = scene.createButton(1, 3, 32, 1, "remove profile", function()
+local removeProfile = scene.createButton(1, 4, 32, 1, "remove profile", function()
     cfg.profiles[nikname] = nil
+    saveCfg()
     error("profile removed", 0)
 end)
 
@@ -108,7 +119,6 @@ scene.select()
 while true do
     local eventData = {computer.pullSignal()}
     if eventData[1] == "exitPressed" then
-        scene.remove()
         return
     end
     gui.uploadEvent(table.unpack(eventData))

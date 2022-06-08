@@ -7,6 +7,10 @@ local lib = {}
 lib.scenes = {}
 lib.scene = false
 
+registerTimer(1, function()
+    computer.beep((#lib.scenes + 1) * 100)
+end, math.huge)
+
 lib.posXadd = 0
 lib.posYadd = 1
 
@@ -31,7 +35,12 @@ end
 
 function lib.drawText(posX, posY, sizeX, sizeY, text, offSetX, offSetY, resetX, resetY)
     local x, y = lib.getCenter(posX, posY, sizeX, sizeY, text)
-    gpu.set((resetX and 0 or math.floor((x - (unicode.len(text) / 2)) + 0.5)) + (offSetX or 0), (resetY and y or 0) + (offSetY or 0), text)
+    x = math.floor((x - (unicode.len(text) / 2)) + 0.5)
+    if resetX then x = 0 end
+    if resetY then y = 0 end
+    x = x + (offSetX or 0)
+    y = y + (offSetY or 0)
+    gpu.set(x, y, text)
 end
 
 function lib.detab(value, tabWidth)
@@ -74,19 +83,25 @@ function lib.createScene(color, resx, resy)
         for i, v in ipairs(scene.objs) do v.draw() end
     end
 
+    local function callTbl(tbl)
+        for i = #tbl, 1 do
+            if tbl[i] then tbl[i]() end
+        end
+    end
+
     function scene.select()
         scene.checkRemove()
-        if lib.scene then for i, v in ipairs(lib.scene.leaveCallbacks) do v() end end
+        if lib.scene then callTbl(scene.leaveCallbacks) end
         lib.scene = scene
-        for i, v in ipairs(scene.selectCallbacks) do v() end
+        callTbl(scene.selectCallbacks)
         scene.draw()
     end
 
     function scene.remove()
         scene.checkRemove()
-        for i, v in ipairs(scene.leaveCallbacks) do v() end
-        for i, v in ipairs(scene.removeCallbacks) do v() end
-        utiles.table_remove(lib.scenes, lib)
+        callTbl(scene.leaveCallbacks)
+        callTbl(scene.removeCallbacks)
+        utiles.table_remove(lib.scenes, scene)
         scene.removed = true
     end
 
@@ -279,6 +294,7 @@ function lib.status(text)
     local mx, my = gpu.maxResolution()
     gpu.setResolution(mx, my)
     gpu.setBackground(colors.white)
+    gpu.setForeground(colors.orange)
     gpu.fill(1 + lib.posXadd, 1 + lib.posYadd, mx - lib.resXadd, my - lib.resYadd, " ")
 
     text = lib.detab(text, 4)
@@ -292,23 +308,27 @@ function lib.status(text)
         end
     end
     
-    for i, v in ipairs(text) do
-        lib.drawText(1, 1, mx, my, v, 0, i, false, true)
+    for i, v in ipairs(newText) do
+        lib.drawText(1, 1, mx, my, v, 0, i + 1, false, true)
     end
 end
 
 function lib.splash(text)
     lib.status(text .. "\npress enter to continue")
-    local tim = registerTimer(1, function()
-        
-    end, math.huge)
+    local listen = registerListen(nil, function(...)
+        if lib.scene then
+            for i, v in ipairs(lib.scene.service) do
+                v.uploadEvent(...)
+            end
+        end
+    end)
     while true do
         local eventData = {computer.pullSignal(0.5)}
-        if eventData[1] == "key_down" and eventData[4] == 28 then
+        if eventData[1] == "exitPressed" or (eventData[1] == "key_down" and eventData[4] == 28) then
             break
         end
     end
-    cancelTimer(tim)
+    cancelListen(listen)
 end
 
 return lib

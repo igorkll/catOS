@@ -63,8 +63,11 @@ do --системма слушателей
 
     local function runCallback(func, ...)
         local tbl = {pcall(func, ...)}
-        if not tbl[1] then return nil, tbl[2] end
-        return true, table.unpack(tbl, 2)
+        if not tbl[1] then
+            table.insert(listensError, tbl[2] or "unkown")
+            return nil, tbl[2]
+        end
+        return table.unpack(tbl)
     end
 
     function registerTimer(period, func, times)
@@ -114,8 +117,6 @@ do --системма слушателей
                             if value == false or timers[i].times <= 0 then
                                 timers[i] = nil
                             end
-                        else
-                            table.insert(listensError, value)
                         end
                     end
                 end
@@ -125,13 +126,11 @@ do --системма слушателей
                 for i = #listens, 1, -1 do
                     if listens[i] then
                         if not listens[i].eventName or listens[i].eventName == tbl[1] then
-                            local ok, value = runCallback(listens[i].func)
+                            local ok, value = runCallback(listens[i].func, table.unpack(tbl))
                             if ok then
                                 if value == false then
                                     timers[i] = nil
                                 end
-                            else
-                                table.insert(listensError, value)
                             end
                         end
                     end
@@ -176,7 +175,7 @@ _G.interruptTime = 1
 function _G.interrupt()
     if computer.uptime() - oldInterruptTime > _G.interruptTime then
         os.sleep()
-        oldInterruptTime = uptime()
+        oldInterruptTime = computer.uptime()
     end
 end
 
@@ -248,8 +247,13 @@ function os.execute(path, ...)
     local oldScene = gui.scene
     colors.palette = colors.createPalette()
 
-
     local res = {xpcall(code, debug.traceback, ...)}
+
+    if fs.isDirectory() then
+        if fs.exists(fs.concat(path, "onExit.lua")) then os.execute(fs.concat(path, "exit.lua"), res) end
+        if fs.exists(fs.concat(path, "onLegalExit.lua")) and res[1] then os.execute(fs.concat(path, "exit.lua"), res) end
+        if fs.exists(fs.concat(path, "onError.lua")) and not res[1] then os.execute(fs.concat(path, "exit.lua"), res) end
+    end
 
     colors.palette = oldPalette
     if oldScene then
@@ -260,6 +264,14 @@ function os.execute(path, ...)
 end
 
 --------------------------------------------main
+
+--[[
+local t = registerListen("touch", function(e)
+    computer.beep(500)
+    gpu.set(1, 2, e)
+    computer.beep(2000)
+end)
+]]
 
 if true then
     local rx, ry = 16, 12
@@ -290,5 +302,7 @@ if true then
     gpu.set(1, 12, string.rep(" ", rx))
     os.sleep(2)
 end
+
+--cancelListen(t)
 
 assert(os.execute("/apps/shell.app"))
