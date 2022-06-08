@@ -249,15 +249,15 @@ function os.execute(path, ...)
 
     local res = {xpcall(code, debug.traceback, ...)}
 
-    if fs.isDirectory() then
-        if fs.exists(fs.concat(path, "onExit.lua")) then os.execute(fs.concat(path, "exit.lua"), res) end
-        if fs.exists(fs.concat(path, "onLegalExit.lua")) and res[1] then os.execute(fs.concat(path, "exit.lua"), res) end
-        if fs.exists(fs.concat(path, "onError.lua")) and not res[1] then os.execute(fs.concat(path, "exit.lua"), res) end
+    if fs.isDirectory(path) then
+        if fs.exists(fs.concat(path, "onExit.lua")) then os.execute(fs.concat(path, "onExit.lua"), res) end
+        if fs.exists(fs.concat(path, "onLegalExit.lua")) and res[1] then os.execute(fs.concat(path, "onLegalExit.lua"), res) end
+        if fs.exists(fs.concat(path, "onError.lua")) and not res[1] then os.execute(fs.concat(path, "onError.lua"), res) end
     end
 
     colors.palette = oldPalette
     if oldScene then
-        oldScene.select()
+        pcall(oldScene.select)
     end
 
     return table.unpack(res)

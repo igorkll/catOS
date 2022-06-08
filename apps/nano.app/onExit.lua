@@ -1,2 +1,2 @@
 computer.beep(100)
-gui.
+pcall(_G.nanoScene.remove)

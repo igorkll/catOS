@@ -7,7 +7,8 @@ local serialization = require("serialization")
 local nikname = ...
 if not nikname then error("nikname is not sended", 0) return end
 local thisPath = fs.path(utiles.getPath())
-local nano = dofile(fs.concat(thisPath, "nano.lua"))
+local nano = _G.nanoLib or dofile(fs.concat(thisPath, "nano.lua"))
+_G.nanoLib = nano
 
 gui.status("connectiong")
 
