@@ -241,7 +241,22 @@ end
 function os.execute(path, ...)
     local code, err = loadprogramm(path)
     if not code then return nil, err end
-    return xpcall(code, debug.traceback, ...)
+
+    local gui = require("gui")
+
+    local oldPalette = colors.palette
+    local oldScene = gui.scene
+    colors.palette = colors.createPalette()
+
+
+    local res = {xpcall(code, debug.traceback, ...)}
+
+    colors.palette = oldPalette
+    if oldScene then
+        oldScene.select()
+    end
+
+    return table.unpack(res)
 end
 
 --------------------------------------------main

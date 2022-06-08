@@ -6,7 +6,10 @@ local fs = require("filesystem")
 --------------------------------------------
 
 local thisPath = fs.path(utiles.getPath())
+thisPath = unicode.sub(thisPath, 1, unicode.len(thisPath) - 1)
+
 local rx, ry = gui.maxResolution()
+local rx, ry = 28, 10
 local scene = gui.createScene(colors.green, rx, ry)
 
 --------------------------------------------
@@ -20,12 +23,14 @@ local function refreshAppList()
     for file in fs.list("/apps") do
         local full_path = fs.concat("/apps", file)
         if full_path ~= thisPath then
-            count = count + 1
-            local b = scene.createButton((1 + count) % 9, (1 + count) // 8, 8, 4, fs.name(full_path), function()
+            local b = scene.createButton(((count * 9) % (rx - 8)) + 1,
+            (((count * 9) // rx) * 5) + 1, 8, 4, fs.name(full_path), function()
                 os.execute(full_path)
             end)
+            count = count + 1
             b.backColor = colors.yellow
             b.foreColor = colors.orange
+            table.insert(appsButtons, b)
         end
     end
 end

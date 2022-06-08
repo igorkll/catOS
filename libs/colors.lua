@@ -19,11 +19,14 @@ lib.purple = 0x8A2BE2
 
 --------------------------------------------palette
 
-lib.palette = 
-{lib.black, lib.gray1, lib.gray2, lib.gray3,
-lib.white, lib.red, lib.green, lib.blue,
-lib.yellow, lib.orange, lib.cyan, lib.purple,
--1, -1, -1, -1}
+function lib.createPalette()
+    return {lib.black, lib.gray1, lib.gray2, lib.gray3,
+    lib.white, lib.red, lib.green, lib.blue,
+    lib.yellow, lib.orange, lib.cyan, lib.purple,
+    -1, -1, -1, -1}
+end
+
+lib.palette = lib.createPalette()
 
 lib.freePaletteIndex = {}
 for i, v in ipairs(lib.palette) do
