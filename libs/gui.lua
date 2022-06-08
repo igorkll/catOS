@@ -137,7 +137,7 @@ function lib.createScene(color, resx, resy)
                         computer.delay()
                         obj.state = false
                         obj.draw()
-                        obj.callback(true, false)
+                        obj.callback(true, false, tbl[6])
                     end
                 end
             elseif obj.mode == 1 then
@@ -145,7 +145,7 @@ function lib.createScene(color, resx, resy)
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = not obj.state
                         obj.draw()
-                        obj.callback(obj.state, not obj.state)
+                        obj.callback(obj.state, not obj.state, tbl[6])
                     end
                 end
             elseif obj.mode == 2 then
@@ -153,14 +153,14 @@ function lib.createScene(color, resx, resy)
                     if tbl[4] >= obj.posY and tbl[4] < (obj.posY + obj.sizeY) then
                         obj.state = not obj.state
                         obj.draw()
-                        obj.callback(obj.state, not obj.state)
+                        obj.callback(obj.state, not obj.state, tbl[6])
                         return
                     end
                 end
                 if (tbl[1] == "drop" or tbl[1] == "touch") and obj.state then
                     obj.state = false
                     obj.draw()
-                    obj.callback(obj.state, not obj.state)
+                    obj.callback(obj.state, not obj.state, tbl[6])
                 end
             end
         end
