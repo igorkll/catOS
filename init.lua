@@ -65,6 +65,11 @@ do --системма слушателей
         local tbl = {pcall(func, ...)}
         if not tbl[1] then
             table.insert(listensError, tbl[2] or "unkown")
+            computer.beep(100, 1)
+            require("gui").splash(listensError[#listensError])
+            if #listensError > 2 then
+                table.remove(listensError, 1)
+            end
             return nil, tbl[2]
         end
         return table.unpack(tbl)
