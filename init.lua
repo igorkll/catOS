@@ -225,8 +225,11 @@ local fs = require("filesystem")
 --------------------------------------------graphic
 
 gpu = getCp("gpu")
-gpu.bind(component.list("screen")(), true)
+screen = component.proxy(component.list("screen")())
+gpu.bind(screen.address, true)
 gpu.setDepth(4)
+
+pcall(screen.setPrecise, false)
 
 local colors = require("colors")
 colors.applyPalette()

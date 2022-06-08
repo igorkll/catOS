@@ -56,8 +56,14 @@ scene.select()
 while true do
     local eventData = {computer.pullSignal()}
     if eventData[1] == "exitPressed" then
-        computer.beep(200)
-        computer.beep(200)
+        local num, str = gui.context(1, 1, {{"beep1", false}, {"beep2", true}, {"beep3", true}})
+        if num == 1 then
+            computer.beep(1000)
+        elseif num == 2 then
+            computer.beep(1500)
+        elseif num == 3 then
+            computer.beep(2000)
+        end
     end
     gui.uploadEvent(table.unpack(eventData))
 end

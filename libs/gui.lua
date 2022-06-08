@@ -320,4 +320,60 @@ function lib.splash(text)
     cancelListen(listen)
 end
 
+function lib.context(posX, posY, data)
+    if type(data[1]) == "string" then
+        local newdata = {}
+        for i, v in ipairs(data) do
+            table.insert(newdata, {v, true})
+        end
+        data = newdata
+    end
+    local sizeX, sizeY = 0, #data
+    for i, v in ipairs(data) do
+        if unicode.len(v[1]) > sizeX then
+            sizeX = unicode.len(v[1])
+        end
+    end
+
+    posX = posX + lib.posXadd
+    posY = posY + lib.posYadd
+
+    gpu.setBackground(colors.gray2)
+    gpu.fill(posX + 1, posY + 1, sizeX, sizeY, " ")
+
+    gpu.setBackground(colors.white)
+    gpu.fill(posX, posY, sizeX, sizeY, " ")
+    for i, v in ipairs(data) do
+        if v[2] then
+            gpu.setForeground(colors.black)
+        else
+            gpu.setForeground(colors.gray3)
+        end
+        gpu.set(posX, posY + (i - 1), v[1])
+    end
+
+    while true do
+        ::tonew::
+        local eventData = {computer.pullSignal()}
+        if eventData[1] == "touch" then
+            if eventData[3] >= (posY - 1) and eventData[3] <= (posY + sizeY) then
+                local num = (eventData[4] - posY) + 1
+                if num >= 1 and num <= #data then
+                    if data[num][2] then
+                        lib.draw()
+                        return num, data[num][1]
+                    else
+                        goto tonew
+                    end
+                end
+            end
+        end
+        if eventData[1] == "touch" or eventData[1] == "scroll" then
+            computer.pushSignal(table.unpack(eventData))
+            lib.draw()
+            return nil, nil
+        end
+    end
+end
+
 return lib
