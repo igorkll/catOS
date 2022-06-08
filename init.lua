@@ -73,12 +73,30 @@ do --системма слушателей
         checkArg(2, func, "function")
         checkArg(3, times, "number")
         table.insert(timers, {period = period, func = func, times = times, oldTime = computer.uptime()})
+        return #timers
     end
 
     function registerListen(eventName, func)
         checkArg(1, eventName, "string", "nil")
         checkArg(2, func, "function")
         table.insert(listens, {eventName = eventName, func = func})
+        return #listens
+    end
+    
+    function cancelListen(num)
+        if listens[num] then
+            listens[num] = nil
+            return true
+        end
+        return false
+    end
+
+    function cancelTimer(num)
+        if timers[num] then
+            timers[num] = nil
+            return true
+        end
+        return false
     end
 
     function computer.pullSignal(time)
@@ -87,29 +105,34 @@ do --системма слушателей
         while computer.uptime() - inTime < time do
             local tbl = {computer_pullSignal(0.1)}
             for i = #timers, 1, -1 do
-                if computer.uptime() - timers[i].oldTime > timers[i].period then
-                    local ok, value = runCallback(timers[i].func)
-                    timers[i].times = timers[i].times - 1
-                    if ok then
-                        if value == false or timers[i].times <= 0 then
-                            table.remove(timers, i)
+                if timers[i] then
+                    if computer.uptime() - timers[i].oldTime > timers[i].period then
+                        local ok, value = runCallback(timers[i].func)
+                        timers[i].oldTime = computer.uptime()
+                        timers[i].times = timers[i].times - 1
+                        if ok then
+                            if value == false or timers[i].times <= 0 then
+                                timers[i] = nil
+                            end
+                        else
+                            table.insert(listensError, value)
                         end
-                    else
-                        table.insert(listensError, value)
                     end
                 end
             end
 
             if #tbl > 0 then
                 for i = #listens, 1, -1 do
-                    if not listens[i].eventName or listens[i].eventName == tbl[1] then
-                        local ok, value = runCallback(listens[i].func)
-                        if ok then
-                            if value == false then
-                                table.remove(timers, i)
+                    if listens[i] then
+                        if not listens[i].eventName or listens[i].eventName == tbl[1] then
+                            local ok, value = runCallback(listens[i].func)
+                            if ok then
+                                if value == false then
+                                    timers[i] = nil
+                                end
+                            else
+                                table.insert(listensError, value)
                             end
-                        else
-                            table.insert(listensError, value)
                         end
                     end
                 end
@@ -223,32 +246,34 @@ end
 
 --------------------------------------------main
 
-local rx, ry = 16, 12
-gpu.setResolution(rx, ry)
-gpu.setBackground(colors.black)
-gpu.set(1, 1, string.rep(" ", rx))
-gpu.setBackground(colors.gray1)
-gpu.set(1, 2, string.rep(" ", rx))
-gpu.setBackground(colors.gray2)
-gpu.set(1, 3, string.rep(" ", rx))
-gpu.setBackground(colors.gray3)
-gpu.set(1, 4, string.rep(" ", rx))
-gpu.setBackground(colors.white)
-gpu.set(1, 5, string.rep(" ", rx))
-gpu.setBackground(colors.red)
-gpu.set(1, 6, string.rep(" ", rx))
-gpu.setBackground(colors.green)
-gpu.set(1, 7, string.rep(" ", rx))
-gpu.setBackground(colors.blue)
-gpu.set(1, 8, string.rep(" ", rx))
-gpu.setBackground(colors.yellow)
-gpu.set(1, 9, string.rep(" ", rx))
-gpu.setBackground(colors.orange)
-gpu.set(1, 10, string.rep(" ", rx))
-gpu.setBackground(colors.cyan)
-gpu.set(1, 11, string.rep(" ", rx))
-gpu.setBackground(colors.purple)
-gpu.set(1, 12, string.rep(" ", rx))
-os.sleep(2)
+if false then
+    local rx, ry = 16, 12
+    gpu.setResolution(rx, ry)
+    gpu.setBackground(colors.black)
+    gpu.set(1, 1, string.rep(" ", rx))
+    gpu.setBackground(colors.gray1)
+    gpu.set(1, 2, string.rep(" ", rx))
+    gpu.setBackground(colors.gray2)
+    gpu.set(1, 3, string.rep(" ", rx))
+    gpu.setBackground(colors.gray3)
+    gpu.set(1, 4, string.rep(" ", rx))
+    gpu.setBackground(colors.white)
+    gpu.set(1, 5, string.rep(" ", rx))
+    gpu.setBackground(colors.red)
+    gpu.set(1, 6, string.rep(" ", rx))
+    gpu.setBackground(colors.green)
+    gpu.set(1, 7, string.rep(" ", rx))
+    gpu.setBackground(colors.blue)
+    gpu.set(1, 8, string.rep(" ", rx))
+    gpu.setBackground(colors.yellow)
+    gpu.set(1, 9, string.rep(" ", rx))
+    gpu.setBackground(colors.orange)
+    gpu.set(1, 10, string.rep(" ", rx))
+    gpu.setBackground(colors.cyan)
+    gpu.set(1, 11, string.rep(" ", rx))
+    gpu.setBackground(colors.purple)
+    gpu.set(1, 12, string.rep(" ", rx))
+    os.sleep(2)
+end
 
 assert(os.execute("/apps/shell.app"))

@@ -42,9 +42,10 @@ function lib.createScene(color, resx, resy)
     scene.removeCallbacks = {}
     scene.removed = false
 
-    scene.color = color
-    scene.resx = resx
-    scene.resy = resy
+    scene.color = color or colors.green
+    local mx, my = lib.maxResolution()
+    scene.resx = resx or mx
+    scene.resy = resy or my
 
     function scene.checkRemove()
         if scene.removed then error("this scene removed", 0) end
@@ -191,6 +192,9 @@ function lib.createScene(color, resx, resy)
             obj.checkRemove()
             utiles.table_remove(scene.objs, obj)
             scene.removed = true
+            for i, v in ipairs(scene.timers) do
+                cancelTimer(scene.timers)
+            end
         end
 
         function obj.draw()
@@ -214,11 +218,31 @@ function lib.createScene(color, resx, resy)
     
     table.insert(lib.scenes, scene)
 
-    local mainbutton = scene.createButton(scene.resx / 2, scene.resy + 1, 2, 1, "◖◗", function(new) if new == false then computer.pushSignal("mainButtonPressed", 0) end end, 2)
+    local mainbutton = scene.createButton(scene.resx / 2, scene.resy + 1, 2, 1, "◖◗", function(new) if new == false then computer.pushSignal("exitPressed") end end, 2)
     mainbutton.backColor = colors.purple
     mainbutton.foreColor = colors.white
     mainbutton.invBackColor = colors.purple
     mainbutton.invForeColor = colors.red
+
+    local powerLabel = scene.createLabel(1, 0, 16, 1)
+    powerLabel.backColor = colors.purple
+    powerLabel.foreColor = colors.white
+
+    local ramLabel = scene.createLabel(scene.resx - 15, 0, 16, 1)
+    ramLabel.backColor = colors.purple
+    ramLabel.foreColor = colors.white
+
+    scene.timers = {}
+
+    function scene.refresh(noNotSkip)
+        if not noNotSkip and (scene.removed or lib.scene ~= scene) then return end
+        ramLabel.text = "ram: " .. tostring(utiles.floorAt(utiles.mapClip(computer.freeMemory(), computer.totalMemory(), 0, 0, 100), 0.1)) .. "%"
+        powerLabel.text = "power: " .. tostring(utiles.floorAt(utiles.mapClip(computer.energy(), 0, computer.maxEnergy(), 0, 100), 0.1)) .. "%"
+        ramLabel.draw()
+        powerLabel.draw()
+    end
+    scene.refresh(true)
+    table.insert(scene.timers, registerTimer(1, scene.refresh, math.huge))
 
     return scene
 end

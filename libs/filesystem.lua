@@ -704,7 +704,7 @@ filesystem.mount(bootfs, "/")
 
 function filesystem.getFile(path)
     local file, err = filesystem.open(path, "rb")
-    if not file then error("kaka:" .. path) return nil, err end
+    if not file then return nil, err end
     local buffer = ""
     while true do
         local read = file:read(math.huge)
