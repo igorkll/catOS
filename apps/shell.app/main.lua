@@ -32,7 +32,11 @@ local function refreshAppList()
 
             local b = scene.createButton(((count % (rx // 9)) * 9) + 1,
             (((count * 9) // (rx - 8)) * 5) + 1, 8, 4, name, function(_, _, nikname)
-                os.execute(full_path, nikname)
+                local ok, err = os.execute(full_path, nikname)
+                if not ok then
+                    gui.splash(err or "unkown")
+                    gui.draw()
+                end
             end)
             count = count + 1
             b.backColor = colors.yellow

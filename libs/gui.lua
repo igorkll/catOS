@@ -29,9 +29,21 @@ function lib.getCenter(posX, posY, sizeX, sizeY)
     return math.floor((posX + (sizeX // 2)) + 0.5), math.floor((posY + (sizeY // 2)) + 0.5)
 end
 
-function lib.drawText(posX, posY, sizeX, sizeY, text)
+function lib.drawText(posX, posY, sizeX, sizeY, text, offSetX, offSetY, resetX, resetY)
     local x, y = lib.getCenter(posX, posY, sizeX, sizeY, text)
-    gpu.set(math.floor((x - (unicode.len(text) / 2)) + 0.5), y, text)
+    gpu.set((resetX and 0 or math.floor((x - (unicode.len(text) / 2)) + 0.5)) + (offSetX or 0), (resetY and y or 0) + (offSetY or 0), text)
+end
+
+function lib.detab(value, tabWidth)
+    checkArg(1, value, "string")
+    checkArg(2, tabWidth, "number", "nil")
+    tabWidth = tabWidth or 8
+    local function rep(match)
+        local spaces = tabWidth - match:len() % tabWidth
+        return match .. string.rep(" ", spaces)
+    end
+    local result = value:gsub("([^\n]-)\t", rep) -- truncate results
+    return result
 end
 
 function lib.createScene(color, resx, resy)
@@ -46,6 +58,8 @@ function lib.createScene(color, resx, resy)
     local mx, my = lib.maxResolution()
     scene.resx = resx or mx
     scene.resy = resy or my
+
+    scene.service = {}
 
     function scene.checkRemove()
         if scene.removed then error("this scene removed", 0) end
@@ -244,6 +258,10 @@ function lib.createScene(color, resx, resy)
     scene.refresh(true)
     table.insert(scene.timers, registerTimer(1, scene.refresh, math.huge))
 
+    table.insert(scene.service, mainbutton)
+    table.insert(scene.service, powerLabel)
+    table.insert(scene.service, ramLabel)
+
     return scene
 end
 
@@ -257,12 +275,40 @@ function lib.draw()
     lib.scene.draw()
 end
 
-function lib.splash(text)
+function lib.status(text)
     local mx, my = gpu.maxResolution()
     gpu.setResolution(mx, my)
     gpu.setBackground(colors.white)
     gpu.fill(1 + lib.posXadd, 1 + lib.posYadd, mx - lib.resXadd, my - lib.resYadd, " ")
-    lib.drawText(1, 1, mx, my, text)
+
+    text = lib.detab(text, 4)
+    text = utiles.split(text, "\n")
+
+    local newText = {}
+    for i, v in ipairs(text) do
+        local sunText = utiles.toParts(v, mx)
+        for i, v in ipairs(sunText) do
+            table.insert(newText, v)
+        end
+    end
+    
+    for i, v in ipairs(text) do
+        lib.drawText(1, 1, mx, my, v, 0, i, false, true)
+    end
+end
+
+function lib.splash(text)
+    lib.status(text .. "\npress enter to continue")
+    local tim = registerTimer(1, function()
+        
+    end, math.huge)
+    while true do
+        local eventData = {computer.pullSignal(0.5)}
+        if eventData[1] == "key_down" and eventData[4] == 28 then
+            break
+        end
+    end
+    cancelTimer(tim)
 end
 
 return lib

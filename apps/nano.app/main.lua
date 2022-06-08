@@ -47,7 +47,7 @@ if not cfg.profiles[nikname] then
     profile = cfg.profiles[nikname]
 
     for i = 1, inputCount do
-        gui.status("off pin: " .. tostring(math.floor(i)) .. "/" .. tostring(inputCount))
+        gui.status("off pin: " .. tostring(math.floor(i)))
         nano.setInput(i, false)
         check()
     end
